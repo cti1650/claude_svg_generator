@@ -1,0 +1,22 @@
+{
+  "name": "claude-svg-generator",
+  "version": "1.0.0",
+  "description": "Claude API を活用したSVG生成Webアプリ",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "claude",
+    "svg",
+    "ai",
+    "cloudflare",
+    "workers"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
