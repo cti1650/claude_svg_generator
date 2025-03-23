@@ -1,0 +1,14 @@
+{
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "routes": [
+    {
+      "pattern": "/api/*",
+      "functions": {
+        "api/*": {
+          "function": "api"
+        }
+      }
+    }
+  ]
+}
