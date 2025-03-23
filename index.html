@@ -377,6 +377,7 @@
         // プロンプトテンプレート
         const promptTemplates = {
             simple: `あなたはSVGイメージを作成するエキスパートです。以下の要望に基づいてSVGコードを生成してください。
+SVGの背景は特に指示がない限り白色にしてください。
 SVGのコードのみを返してください。説明や解説は不要です。
 
 要望: {request}`,
@@ -384,6 +385,7 @@ SVGのコードのみを返してください。説明や解説は不要です�
             detailed: `あなたはSVGイメージを作成するエキスパートです。以下の要望に基づいてSVGコードを生成してください。
 SVGには適切なviewBox属性を設定し、レスポンシブなデザインにしてください。
 色彩豊かで視覚的に魅力的なイメージを作成してください。
+SVGの背景は特に指示がない限り白色にしてください。
 SVGのコードのみを返してください。説明や解説は不要です。
 
 要望: {request}`,
@@ -391,6 +393,7 @@ SVGのコードのみを返してください。説明や解説は不要です�
             artistic: `あなたは芸術的なSVGイメージを作成するエキスパートです。以下の要望に基づいて、美しく芸術的なSVGコードを生成してください。
 グラデーション、複雑な形状、アーティスティックな表現を活用してください。
 SVGには適切なviewBox属性を設定し、レスポンシブなデザインにしてください。
+SVGの背景は特に指示がない限り白色にしてください。
 SVGのコードのみを返してください。説明や解説は不要です。
 
 要望: {request}`,
@@ -399,6 +402,7 @@ SVGのコードのみを返してください。説明や解説は不要です�
 SVGの最適化を意識し、不要な要素を排除してコードを簡潔にしてください。
 グループ化、再利用可能なコンポーネント、効率的なパスを活用してください。
 SVGには適切なviewBox属性を設定し、レスポンシブなデザインにしてください。
+SVGの背景は特に指示がない限り白色にしてください。
 SVGのコードのみを返してください。説明や解説は不要です。
 
 要望: {request}`
@@ -577,7 +581,7 @@ SVGのコードのみを返してください。説明や解説は不要です�
                         svgElement.removeAttribute('width');
                         svgElement.removeAttribute('height');
                         // style属性を追加または更新して、最大サイズを設定
-                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto; background-color: white;');
                     } else {
                         // viewBoxがない場合は、既存のwidth/heightからviewBoxを作成
                         const width = svgElement.getAttribute('width') || '800';
@@ -593,7 +597,53 @@ SVGのコードのみを返してください。説明や解説は不要です�
                         svgElement.removeAttribute('width');
                         svgElement.removeAttribute('height');
                         // style属性を追加または更新
-                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto; background-color: white;');
+                    }
+                    
+                    // 背景用の矩形がまだ存在していない場合は追加
+                    let hasBackgroundRect = false;
+                    const firstChild = svgElement.firstElementChild;
+                    
+                    if (firstChild && firstChild.tagName === 'rect') {
+                        // 最初の要素が矩形で、x=0, y=0, width=100%, height=100%の場合、背景とみなす
+                        const x = firstChild.getAttribute('x') || '0';
+                        const y = firstChild.getAttribute('y') || '0';
+                        const width = firstChild.getAttribute('width');
+                        const height = firstChild.getAttribute('height');
+                        
+                        if (x === '0' && y === '0' && (width === '100%' || height === '100%')) {
+                            hasBackgroundRect = true;
+                        }
+                    }
+                    
+                    if (!hasBackgroundRect) {
+                        // viewBoxから背景のサイズを決定
+                        let bgWidth = '100%';
+                        let bgHeight = '100%';
+                        
+                        if (viewBox) {
+                            const viewBoxValues = viewBox.split(' ');
+                            if (viewBoxValues.length === 4) {
+                                // 明示的なサイズを使用する場合
+                                bgWidth = viewBoxValues[2];
+                                bgHeight = viewBoxValues[3];
+                            }
+                        }
+                        
+                        // 背景用の白い矩形を追加
+                        const bgRect = document.createElement('rect');
+                        bgRect.setAttribute('x', '0');
+                        bgRect.setAttribute('y', '0');
+                        bgRect.setAttribute('width', bgWidth);
+                        bgRect.setAttribute('height', bgHeight);
+                        bgRect.setAttribute('fill', 'white');
+                        
+                        // 最初の子要素として挿入
+                        if (svgElement.firstChild) {
+                            svgElement.insertBefore(bgRect, svgElement.firstChild);
+                        } else {
+                            svgElement.appendChild(bgRect);
+                        }
                     }
                     
                     // 変更を適用したSVGコードを取得
@@ -685,7 +735,7 @@ ${currentSvg}`;
                         svgElement.removeAttribute('width');
                         svgElement.removeAttribute('height');
                         // style属性を追加または更新して、最大サイズを設定
-                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto; background-color: white;');
                     } else {
                         // viewBoxがない場合は、既存のwidth/heightからviewBoxを作成
                         const width = svgElement.getAttribute('width') || '800';
@@ -701,7 +751,53 @@ ${currentSvg}`;
                         svgElement.removeAttribute('width');
                         svgElement.removeAttribute('height');
                         // style属性を追加または更新
-                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto; background-color: white;');
+                    }
+                    
+                    // 背景用の矩形がまだ存在していない場合は追加
+                    let hasBackgroundRect = false;
+                    const firstChild = svgElement.firstElementChild;
+                    
+                    if (firstChild && firstChild.tagName === 'rect') {
+                        // 最初の要素が矩形で、x=0, y=0, width=100%, height=100%の場合、背景とみなす
+                        const x = firstChild.getAttribute('x') || '0';
+                        const y = firstChild.getAttribute('y') || '0';
+                        const width = firstChild.getAttribute('width');
+                        const height = firstChild.getAttribute('height');
+                        
+                        if (x === '0' && y === '0' && (width === '100%' || height === '100%')) {
+                            hasBackgroundRect = true;
+                        }
+                    }
+                    
+                    if (!hasBackgroundRect) {
+                        // viewBoxから背景のサイズを決定
+                        let bgWidth = '100%';
+                        let bgHeight = '100%';
+                        
+                        if (viewBox) {
+                            const viewBoxValues = viewBox.split(' ');
+                            if (viewBoxValues.length === 4) {
+                                // 明示的なサイズを使用する場合
+                                bgWidth = viewBoxValues[2];
+                                bgHeight = viewBoxValues[3];
+                            }
+                        }
+                        
+                        // 背景用の白い矩形を追加
+                        const bgRect = document.createElement('rect');
+                        bgRect.setAttribute('x', '0');
+                        bgRect.setAttribute('y', '0');
+                        bgRect.setAttribute('width', bgWidth);
+                        bgRect.setAttribute('height', bgHeight);
+                        bgRect.setAttribute('fill', 'white');
+                        
+                        // 最初の子要素として挿入
+                        if (svgElement.firstChild) {
+                            svgElement.insertBefore(bgRect, svgElement.firstChild);
+                        } else {
+                            svgElement.appendChild(bgRect);
+                        }
                     }
                     
                     // 変更を適用したSVGコードを取得
