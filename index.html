@@ -559,9 +559,49 @@ SVGのコードのみを返してください。説明や解説は不要です�
                     svgCode = svgMatch[0];
                 }
                 
+                // SVGのwidth/height属性を処理してviewBoxを優先するように変更
+                let processedSvgCode = svgCode;
+                
+                // 一時的な要素を作成してSVGをパース
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = svgCode;
+                const svgElement = tempDiv.querySelector('svg');
+                
+                if (svgElement) {
+                    // viewBox属性があるか確認
+                    const viewBox = svgElement.getAttribute('viewBox');
+                    
+                    if (viewBox) {
+                        // 固定サイズの width/height 属性を削除し、スタイルで制御する
+                        svgElement.removeAttribute('width');
+                        svgElement.removeAttribute('height');
+                        // style属性を追加または更新して、最大サイズを設定
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                    } else {
+                        // viewBoxがない場合は、既存のwidth/heightからviewBoxを作成
+                        const width = svgElement.getAttribute('width') || '800';
+                        const height = svgElement.getAttribute('height') || '600';
+                        
+                        // 単位を取り除く
+                        const numericWidth = width.replace(/[^0-9.]/g, '');
+                        const numericHeight = height.replace(/[^0-9.]/g, '');
+                        
+                        // viewBox属性を追加
+                        svgElement.setAttribute('viewBox', `0 0 ${numericWidth} ${numericHeight}`);
+                        // 固定サイズの width/height 属性を削除
+                        svgElement.removeAttribute('width');
+                        svgElement.removeAttribute('height');
+                        // style属性を追加または更新
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                    }
+                    
+                    // 変更を適用したSVGコードを取得
+                    processedSvgCode = tempDiv.innerHTML;
+                }
+                
                 // プレビュー表示
-                previewContainer.innerHTML = svgCode;
-                currentSvg = svgCode;
+                previewContainer.innerHTML = processedSvgCode;
+                currentSvg = processedSvgCode;
                 
                 // ボタン有効化
                 modifyTextarea.disabled = false;
@@ -627,9 +667,49 @@ ${currentSvg}`;
                     svgCode = svgMatch[0];
                 }
                 
+                // SVGのwidth/height属性を処理してviewBoxを優先するように変更
+                let processedSvgCode = svgCode;
+                
+                // 一時的な要素を作成してSVGをパース
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = svgCode;
+                const svgElement = tempDiv.querySelector('svg');
+                
+                if (svgElement) {
+                    // viewBox属性があるか確認
+                    const viewBox = svgElement.getAttribute('viewBox');
+                    
+                    if (viewBox) {
+                        // 固定サイズの width/height 属性を削除し、スタイルで制御する
+                        svgElement.removeAttribute('width');
+                        svgElement.removeAttribute('height');
+                        // style属性を追加または更新して、最大サイズを設定
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                    } else {
+                        // viewBoxがない場合は、既存のwidth/heightからviewBoxを作成
+                        const width = svgElement.getAttribute('width') || '800';
+                        const height = svgElement.getAttribute('height') || '600';
+                        
+                        // 単位を取り除く
+                        const numericWidth = width.replace(/[^0-9.]/g, '');
+                        const numericHeight = height.replace(/[^0-9.]/g, '');
+                        
+                        // viewBox属性を追加
+                        svgElement.setAttribute('viewBox', `0 0 ${numericWidth} ${numericHeight}`);
+                        // 固定サイズの width/height 属性を削除
+                        svgElement.removeAttribute('width');
+                        svgElement.removeAttribute('height');
+                        // style属性を追加または更新
+                        svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
+                    }
+                    
+                    // 変更を適用したSVGコードを取得
+                    processedSvgCode = tempDiv.innerHTML;
+                }
+                
                 // プレビュー表示
-                previewContainer.innerHTML = svgCode;
-                currentSvg = svgCode;
+                previewContainer.innerHTML = processedSvgCode;
+                currentSvg = processedSvgCode;
                 
                 showSuccess('SVGの修正に成功しました');
             } catch (error) {
@@ -647,7 +727,41 @@ ${currentSvg}`;
                 return;
             }
             
-            const blob = new Blob([currentSvg], { type: 'image/svg+xml' });
+            // ダウンロード前にオリジナルのサイズ属性を復元するか確認
+            const shouldRestoreSize = confirm('オリジナルサイズ属性を復元しますか？\n「OK」: 固定サイズでダウンロード\n「キャンセル」: 現在の表示状態（viewBox優先）でダウンロード');
+            
+            let svgForDownload = currentSvg;
+            
+            if (shouldRestoreSize) {
+                // 一時的な要素を作成してSVGをパース
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = currentSvg;
+                const svgElement = tempDiv.querySelector('svg');
+                
+                if (svgElement) {
+                    // viewBox属性から幅と高さを取得
+                    const viewBox = svgElement.getAttribute('viewBox');
+                    if (viewBox) {
+                        const viewBoxValues = viewBox.split(' ');
+                        if (viewBoxValues.length === 4) {
+                            const width = viewBoxValues[2];
+                            const height = viewBoxValues[3];
+                            
+                            // width/height属性を復元
+                            svgElement.setAttribute('width', width);
+                            svgElement.setAttribute('height', height);
+                            
+                            // style属性を削除または更新
+                            svgElement.removeAttribute('style');
+                        }
+                    }
+                    
+                    // 変更を適用したSVGコードを取得
+                    svgForDownload = tempDiv.innerHTML;
+                }
+            }
+            
+            const blob = new Blob([svgForDownload], { type: 'image/svg+xml' });
             const url = URL.createObjectURL(blob);
             
             const a = document.createElement('a');
